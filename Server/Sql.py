@@ -1,7 +1,5 @@
 import sqlite3
 
-import tkinter
-
 
 def connect(name):
     conn = sqlite3.connect(name)
@@ -84,6 +82,33 @@ def Register(username, password):
     return 0
 
 
+def user_list():
+    conn = connect("userdata.db")
+    c = conn.cursor()
+    result = c.execute("SELECT username FROM PASSWORD")
+
+    user_list = []
+    for user in result:
+        print(user)
+        user_list.append(user[0])
+
+    print(str(user_list)[1:-1])
+    return str(user_list)[1:-1]
+
+
+def change_role(lists):
+    user = lists[0]
+    role = lists[1]
+    conn = connect("userdata.db")
+    c = conn.cursor()
+    result = c.execute(
+        "update PASSWORD set role = " + str(role) + " where username = " + user
+    )
+    conn.commit()
+    conn.close()
+    return 0
+
+
 def get_role(user):
     conn = connect("userdata.db")
     c = conn.cursor()
@@ -130,6 +155,17 @@ def del_warehouse(name):
     conn.commit()
     conn.close()
     return 0
+
+
+def item_in_warehouse(name):
+    conn = connect("warehouse.db")
+    c = conn.cursor()
+    result = c.execute("SELECT item_name, item_quantity, item_remark FROM " + name)
+    item_list = []
+    for item in result:
+        item_list.append([item[0], item[1], item[2]])
+    print(str(item_list)[1:-1])
+    return str(item_list)[1:-1]
 
 
 def add_item(lists):
@@ -190,3 +226,4 @@ def del_item(lists):
 # add_item("test", "测试", 1, "测试")
 # add_item("test", "测试2", 1, "测试")
 # add_item("test", "测试3", 1, "测试")
+# print(item_in_warehouse("test").replace("'", ""))

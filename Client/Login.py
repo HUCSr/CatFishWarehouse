@@ -1,6 +1,7 @@
 import tkinter as tk
 import json
 import os
+import SocketManager
 import hashlib
 
 import threading
@@ -60,6 +61,24 @@ def login(login_type):
     print("username:", username)
     print("password:", password)
 
+    result = SocketManager.sendLogin(username, password, login_type)
+
+    if result == "100|":
+        tip("操作过于频繁,请稍后再进行操作")
+    elif result == "001|3":
+        tip("权限不足")
+    elif result == "001|4":
+        tip("账号或密码错误")
+    elif result == "001|5":
+        tip("不存在的账号")
+    else:
+        group = result[-1]
+        tip("登录成功")
+
+        # GlobalVar.set_value("username", username)
+
+    pass
+
 
 # 注册功能
 def register():
@@ -82,6 +101,15 @@ def register():
 
     print("username:", username)
     print("password:", password)
+
+    result = SocketManager.sendRegister(username, password)
+
+    if result == "100|":
+        tip("操作过于频繁,请稍后再进行操作")
+    elif result != "002|0":
+        tip("账号已存在")
+    else:
+        tip("注册成功")
 
 
 def open_login():
