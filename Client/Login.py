@@ -4,6 +4,8 @@ import os
 import SocketManager
 import hashlib
 
+import warehouse
+import management
 import threading
 
 
@@ -37,6 +39,15 @@ def save_credentials(username, password, remember):
 # 提示信息
 def tip(message):
     tip_label.config(text=message)
+
+
+# 新的窗口
+def open_warehouse_thread(group):
+    warehouse.open_warehouse(group)
+
+
+def open_management_thread():
+    management.open_user_management()
 
 
 # 登录功能
@@ -76,7 +87,12 @@ def login(login_type):
         tip("登录成功")
 
         # GlobalVar.set_value("username", username)
-
+        if login_type == 0:
+            threading.Thread(target=open_warehouse_thread, args=(int(group),)).start()
+            root.after(100, root.destroy)
+        else:
+            threading.Thread(target=open_management_thread).start()
+            root.after(100, root.destroy)
     pass
 
 

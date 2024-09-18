@@ -61,19 +61,81 @@ def delete_warehouse():
 
 # 更新物品列表
 def update_item_list(event):
-    pass
+    for item in item_list.get_children():
+        item_list.delete(item)
+
+    selected_warehouse = warehouse_combobox.get()
+    if selected_warehouse in warehouses:
+        print("selected_warehouse")
+        print(selected_warehouse)
+        result = SocketManager.sendWarehouse(3, [selected_warehouse])
+        if result == "033|":
+            return
+        result = result[4:]
+        result = ast.literal_eval(result)
+        for item in result:
+            item_list.insert("", "end", values=item)
 
 
 # 添加物品
 def add_item():
     if type <= 1:
-        pass
+        item_name = item_name_entry.get().strip()
+        item_quantity = item_quantity_entry.get().strip()
+        item_remark = item_remark_entry.get().strip()
+
+        if not item_name:
+            messagebox.showwarning("警告", "物品名称不能为空。")
+            return
+        if not item_quantity.isdigit() or int(item_quantity) <= 0:
+            messagebox.showwarning("警告", "物品数量必须是大于0的数字。")
+            return
+
+        selected_warehouse = warehouse_combobox.get()
+        if selected_warehouse not in warehouses:
+            messagebox.showwarning("警告", "请选择一个有效的仓库。")
+            return
+
+        result = SocketManager.sendWarehouse(
+            4, [selected_warehouse, item_name, item_quantity, item_remark]
+        )
+
+        update_item_list(None)  # 更新物品列表
+        # 清空输入框
+        item_name_entry.delete(0, tk.END)
+        item_quantity_entry.delete(0, tk.END)
+        item_remark_entry.delete(0, tk.END)
 
 
 # 出库
 def delete_item():
     if type <= 1:
-        pass
+        item_name = item_name_entry.get().strip()
+        item_quantity = item_quantity_entry.get().strip()
+        item_remark = item_remark_entry.get().strip()
+
+        if not item_name:
+            messagebox.showwarning("警告", "物品名称不能为空。")
+            return
+        if not item_quantity.isdigit() or int(item_quantity) <= 0:
+            messagebox.showwarning("警告", "物品数量必须是大于0的数字。")
+            return
+
+        selected_warehouse = warehouse_combobox.get()
+        if selected_warehouse not in warehouses:
+            messagebox.showwarning("警告", "请选择一个有效的仓库。")
+            return
+
+        result = SocketManager.sendWarehouse(
+            5, [selected_warehouse, item_name, item_quantity, item_remark]
+        )
+
+        # 更新物品列表
+        update_item_list(None)
+        # 清空输入框
+        item_name_entry.delete(0, tk.END)
+        item_quantity_entry.delete(0, tk.END)
+        item_remark_entry.delete(0, tk.END)
 
 
 # 打开仓库界面

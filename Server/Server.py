@@ -83,6 +83,52 @@ def handle_client(client_socket):
                     message[4:].split(" ")[0], message[4:].split(" ")[1]
                 )
                 sendMessage("002|" + str(result), client_socket)
+            # 获取仓库列表请求
+            elif message[:3] == "003":
+                print(message[:3])
+                result = Sql.Warehouse_list()
+                sendMessage("003|" + str(result), client_socket)
+                pass
+            # 添加仓库
+            elif message[:3] == "013":
+                result = Sql.add_warehouse(message[4:])
+                sendMessage("013|", client_socket)
+                pass
+            # 删除仓库
+            elif message[:3] == "023":
+                result = Sql.del_warehouse(message[4:])
+                sendMessage("023|", client_socket)
+                pass
+            # 获取仓库物品
+            elif message[:3] == "033":
+                result = Sql.item_in_warehouse(message[4:])
+                sendMessage("033|" + str(result), client_socket)
+                pass
+            # 入库
+            elif message[:3] == "043":
+                result = Sql.add_item(message[4:].split(" "))
+                sendMessage("043|", client_socket)
+                pass
+            # 出库
+            elif message[:3] == "053":
+                result = Sql.del_item(message[4:].split(" "))
+                sendMessage("053|", client_socket)
+                pass
+            # 用户
+            elif message[:3] == "004":
+                result = Sql.user_list()
+                sendMessage("004|" + result, client_socket)
+                pass
+            # 修改权限
+            elif message[:3] == "014":
+                result = Sql.change_role(message[4:].split(" "))
+                sendMessage("014|", client_socket)
+                pass
+            # 获取权限
+            elif message[:3] == "024":
+                result = Sql.get_role(message[4:])
+                sendMessage("024|" + str(result), client_socket)
+                pass
     except:
         # 关闭连接
         print(f"Connection from {userid} closed.")
