@@ -12,6 +12,8 @@ def update_warehouse():
     result = result[4:]
     result = ast.literal_eval(result)
     warehouses = result
+    if type(warehouses) == type("a"):
+        warehouses = [warehouses]
     warehouse_combobox["values"] = warehouses
     pass
 
@@ -151,11 +153,14 @@ def search_item():
     for item in item_list.get_children():
         item_list.delete(item)
 
-    selected_warehouse = warehouse_combobox.get()
     for selected_warehouse in warehouses:
+        print(selected_warehouse)
+        print("selected_warehouse")
         result = SocketManager.sendWarehouse(3, [selected_warehouse])
         if result == "033|":
             return
+        print("===")
+        print(result)
         result = result[4:]
         result = ast.literal_eval(result)
         for item in result:
@@ -216,6 +221,39 @@ def show_inventory_chart():
     plt.xticks(rotation=45)
     plt.tight_layout()
     plt.show()
+
+
+# 图表展示
+def show_inventory_chart():
+    selected_warehouse = warehouse_combobox.get()
+    if selected_warehouse not in warehouses:
+        messagebox.showwarning("警告", "请选择一个有效的仓库。")
+        return
+
+    item_names = []
+    item_quantities = []
+
+    result = SocketManager.sendWarehouse(3, [selected_warehouse])
+    if result == "033|":
+        return
+    print("===")
+    print(result)
+    result = result[4:]
+    result = ast.literal_eval(result)
+    for item in result:
+        item_names.append(item[0])
+        item_quantities.append(int(item[1]))
+
+    # 解决中文显示问题
+    plt.rcParams["font.sans-serif"] = ["SimHei"]
+    plt.rcParams["axes.unicode_minus"] = False
+
+    plt.figure(figsize=(8, 8))
+    plt.pie(item_quantities, labels=item_names, autopct="%1.1f%%", startangle=140)
+    plt.title(f"{selected_warehouse} 仓库库存分布")
+    plt.axis("equal")
+    plt.show()
+    pass
 
 
 # 打开仓库界面
