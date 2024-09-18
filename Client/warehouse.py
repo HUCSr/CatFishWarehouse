@@ -37,7 +37,7 @@ def add_warehouse(entry):
         if not new_warehouse:
             messagebox.showwarning("警告", "仓库名不能为空。")
             return
-        if new_warehouse in warehouses:
+        if new_warehouse in warehouses or new_warehouse == "inventory_history":
             messagebox.showwarning("警告", "仓库已存在。")
             return
         if (new_warehouse[0]).isdigit():
@@ -199,31 +199,6 @@ def search_item():
                 )
 
 
-# 展示仓库
-def show_inventory_chart():
-    selected_warehouse = warehouse_combobox.get()
-    if selected_warehouse not in warehouses:
-        messagebox.showwarning("警告", "请选择一个有效的仓库。")
-        return
-
-    item_names = []
-    item_quantities = []
-
-    for item in warehouses[selected_warehouse]:
-        item_names.append(item[0])
-        item_quantities.append(item[1])
-
-    plt.figure(figsize=(10, 6))
-    plt.bar(item_names, item_quantities, color="skyblue")
-    plt.xlabel("物品名称")
-    plt.ylabel("库存数量")
-    plt.title(f"{selected_warehouse} 仓库库存情况")
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    plt.show()
-
-
-# 图表展示
 def show_inventory_chart():
     selected_warehouse = warehouse_combobox.get()
     if selected_warehouse not in warehouses:
@@ -256,13 +231,50 @@ def show_inventory_chart():
     pass
 
 
+# 历史记录
+def show_inventory_history():
+    selected_item = item_name_entry.get().strip()
+    if not selected_item:
+        messagebox.showwarning("警告", "请先选择物品。")
+        return
+
+    result = SocketManager.sendWarehouse(6, selected_item)
+
+    result = result[4:]
+    result = ast.literal_eval(result)
+    print(result)
+    history_window = tk.Toplevel()
+    history_window.title(f"{selected_item} 的入库和出库历史")
+
+    history_list = ttk.Treeview(
+        history_window, columns=("库存", "状态", "操作时间", "备注"), show="headings"
+    )
+    history_list.heading("库存", text="库存")
+    history_list.heading("状态", text="状态")
+    history_list.heading("操作时间", text="操作时间")
+    history_list.heading("备注", text="备注")
+    history_list.pack(padx=10, pady=10)
+
+    for record in result:
+        history_list.insert(
+            "",
+            "end",
+            values=(
+                record["quantity"],
+                record["operation_type"],
+                record["timestamp"],
+                record["remark"],
+            ),
+        )
+
+
 # 打开仓库界面
 def open_warehouse(group):
 
     global Type
     Type = group
 
-    warehouse_root = tk.Tk()
+    warehouse_root = tk.Toplevel()
     warehouse_root.title("仓库管理")
 
     global warehouse_combobox, item_list, item_name_entry, item_quantity_entry, item_remark_entry
@@ -363,6 +375,11 @@ def open_warehouse(group):
         warehouse_frame, text="查看库存图表", command=show_inventory_chart
     )
     chart_button.pack(side=tk.LEFT)
+
+    history_button = tk.Button(
+        warehouse_frame, text="查看入库/出库历史", command=show_inventory_history
+    )
+    history_button.pack(side=tk.LEFT)
 
     warehouse_root.mainloop()
 

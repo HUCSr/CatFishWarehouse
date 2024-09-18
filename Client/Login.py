@@ -38,16 +38,7 @@ def save_credentials(username, password, remember):
 
 # 提示信息
 def tip(message):
-    tip_label.config(text=message)
-
-
-# 新的窗口
-def open_warehouse_thread(group):
-    warehouse.open_warehouse(group)
-
-
-def open_management_thread():
-    management.open_user_management()
+    tk.messagebox.showwarning("提示", message, parent=root)
 
 
 # 登录功能
@@ -56,13 +47,13 @@ def login(login_type):
     password = password_entry.get()
 
     if not username:
-        tip("账号不能为空")
+        root.after(0, lambda: tip("账号不能为空"))
         return
     if not password:
-        tip("密码不能为空")
+        root.after(0, lambda: tip("密码不能为空"))
         return
     if " " in password:
-        tip("密码中不能含有空格")
+        root.after(0, lambda: tip("密码中不能含有空格"))
         return
 
     save_credentials(username, password, save_credentials_var.get())
@@ -75,24 +66,25 @@ def login(login_type):
     result = SocketManager.sendLogin(username, password, login_type)
 
     if result == "100|":
-        tip("操作过于频繁,请稍后再进行操作")
+        root.after(0, lambda: tip("操作过于频繁,请稍后再进行操作"))
     elif result == "001|3":
-        tip("权限不足")
+        root.after(0, lambda: tip("权限不足"))
     elif result == "001|4":
-        tip("账号或密码错误")
+        root.after(0, lambda: tip("账号或密码错误"))
     elif result == "001|5":
-        tip("不存在的账号")
+        root.after(0, lambda: tip("不存在的账号"))
     else:
         group = result[-1]
-        tip("登录成功")
+        root.after(0, lambda: tip("登录成功"))
+
+        root.iconify()
 
         # GlobalVar.set_value("username", username)
         if login_type == 0:
-            threading.Thread(target=open_warehouse_thread, args=(int(group),)).start()
-            root.after(100, root.destroy)
+            warehouse.open_warehouse(group)
         else:
-            threading.Thread(target=open_management_thread).start()
-            root.after(100, root.destroy)
+            management.open_user_management()
+
     pass
 
 
@@ -102,13 +94,13 @@ def register():
     password = password_entry.get()
 
     if not username:
-        tip("账号不能为空")
+        root.after(0, lambda: tip("账号不能为空"))
         return
     if not password:
-        tip("密码不能为空")
+        root.after(0, lambda: tip("密码不能为空"))
         return
     if " " in password:
-        tip("密码中不能含有空格")
+        root.after(0, lambda: tip("密码中不能含有空格"))
         return
 
     save_credentials(username, password, save_credentials_var.get())
@@ -121,11 +113,11 @@ def register():
     result = SocketManager.sendRegister(username, password)
 
     if result == "100|":
-        tip("操作过于频繁,请稍后再进行操作")
+        root.after(0, lambda: tip("操作过于频繁,请稍后再进行操作"))
     elif result != "002|0":
-        tip("账号已存在")
+        root.after(0, lambda: tip("账号已存在"))
     else:
-        tip("注册成功")
+        root.after(0, lambda: tip("注册成功"))
 
 
 def open_login():

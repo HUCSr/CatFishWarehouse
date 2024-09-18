@@ -1,4 +1,7 @@
 import sqlite3
+import datetime
+import os
+import json
 
 
 def connect(name):
@@ -126,6 +129,8 @@ def Warehouse_list():
 
     warehouses = []
     for warehouse in result:
+        if warehouse[0] == "inventory_history":
+            continue
         warehouses.append(warehouse[0])
 
     print(str(warehouses)[1:-1])
@@ -195,6 +200,35 @@ def add_item(lists):
     conn.commit()
     conn.close()
 
+    file_path = "inventory_history.json"
+
+    if not os.path.exists(file_path):
+        history_data = {}
+    else:
+        with open(file_path, "r", encoding="utf-8") as file:
+            history_data = json.load(file)
+
+    print(history_data)
+
+    if history_data.get(item_name) == None:
+        history_data[item_name] = []
+    print(history_data)
+
+    now = datetime.datetime.now()
+    time_str = now.strftime("%Y-%m-%d %H:%M:%S")
+
+    history_data[item_name].append(
+        {
+            "quantity": item_quantity,
+            "operation_type": "入库",
+            "timestamp": time_str,
+            "remark": item_remark,
+        }
+    )
+    print(history_data)
+    with open(file_path, "w", encoding="utf-8") as file:
+        json.dump(history_data, file)
+
 
 def del_item(lists):
     print(lists)
@@ -222,8 +256,36 @@ def del_item(lists):
     conn.commit()
     conn.close()
 
+    file_path = "inventory_history.json"
 
-# add_item("test", "测试", 1, "测试")
-# add_item("test", "测试2", 1, "测试")
-# add_item("test", "测试3", 1, "测试")
-# print(item_in_warehouse("test").replace("'", ""))
+    if not os.path.exists(file_path):
+        history_data = {}
+    else:
+        with open(file_path, "r", encoding="utf-8") as file:
+            history_data = json.load(file)
+
+    if history_data.get(item_name) == None:
+        history_data[item_name] = []
+    history_data[item_name].append(
+        {
+            "quantity": item_quantity,
+            "operation_type": "出库",
+            "timestamp": datetime.now().isoformat(),
+            "remark": item_remark,
+        }
+    )
+    with open(file_path, "w", encoding="utf-8") as file:
+        json.dump(history_data, file)
+
+
+def get_histroy(item):
+
+    file_path = "inventory_history.json"
+
+    with open(file_path, "r", encoding="utf-8") as file:
+        history_data = json.load(file)[item]
+
+    print(str(history_data))
+    return str(history_data)
+
+    pass

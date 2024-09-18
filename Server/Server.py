@@ -141,6 +141,11 @@ def handle_client(client_socket):
                     + "."
                 )
                 pass
+            # 查询历史记录
+            elif message[:3] == "063":
+                result = Sql.get_histroy(message[4:])
+                sendMessage("063|" + result, client_socket)
+                pass
             # 用户
             elif message[:3] == "004":
                 result = Sql.user_list()

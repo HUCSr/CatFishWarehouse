@@ -37,7 +37,7 @@ def fill_role(user_combobox, role_combobox):
 def open_user_management():
     update_users()
 
-    management_root = tk.Tk()
+    management_root = tk.Toplevel()
     management_root.title("用户管理")
 
     # 用户列表
