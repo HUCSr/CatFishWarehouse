@@ -1,0 +1,4 @@
+import Login
+
+if __name__ == "__main__":
+    Login.open_login()
