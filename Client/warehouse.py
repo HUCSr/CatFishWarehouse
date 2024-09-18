@@ -11,6 +11,7 @@ def update_warehouse():
     result = result[4:]
     result = ast.literal_eval(result)
     warehouses = result
+    warehouse_combobox["values"] = warehouses
     pass
 
 
@@ -28,7 +29,7 @@ def on_item_select(event):
 
 # 添加仓库
 def add_warehouse(entry):
-    if type == 0:
+    if Type == 0:
         new_warehouse = entry.get().strip()
         if not new_warehouse:
             messagebox.showwarning("警告", "仓库名不能为空。")
@@ -48,7 +49,7 @@ def add_warehouse(entry):
 
 # 删除仓库
 def delete_warehouse():
-    if type == 0:
+    if Type == 0:
         selected_warehouse = warehouse_combobox.get()
         if selected_warehouse in warehouses:
             result = SocketManager.sendWarehouse(2, [selected_warehouse])
@@ -73,13 +74,18 @@ def update_item_list(event):
             return
         result = result[4:]
         result = ast.literal_eval(result)
-        for item in result:
-            item_list.insert("", "end", values=item)
+        print("AWA")
+        print(type(type(result[0])))
+        if type((result[0])) == type("a"):
+            item_list.insert("", "end", values=result)
+        else:
+            for item in result:
+                item_list.insert("", "end", values=item)
 
 
 # 添加物品
 def add_item():
-    if type <= 1:
+    if Type <= 1:
         item_name = item_name_entry.get().strip()
         item_quantity = item_quantity_entry.get().strip()
         item_remark = item_remark_entry.get().strip()
@@ -109,7 +115,7 @@ def add_item():
 
 # 出库
 def delete_item():
-    if type <= 1:
+    if Type <= 1:
         item_name = item_name_entry.get().strip()
         item_quantity = item_quantity_entry.get().strip()
         item_remark = item_remark_entry.get().strip()
@@ -138,13 +144,60 @@ def delete_item():
         item_remark_entry.delete(0, tk.END)
 
 
+# 搜索物品
+def search_item():
+    search_term = search_entry.get().strip().lower()
+    for item in item_list.get_children():
+        item_list.delete(item)
+
+    selected_warehouse = warehouse_combobox.get()
+    for selected_warehouse in warehouses:
+        result = SocketManager.sendWarehouse(3, [selected_warehouse])
+        if result == "033|":
+            return
+        result = result[4:]
+        result = ast.literal_eval(result)
+        for item in result:
+            if search_term == item[0].lower():
+                item_list.insert(
+                    "",
+                    "end",
+                    values=(item[0], item[1], "所在仓库: " + selected_warehouse),
+                )
+    for selected_warehouse in warehouses:
+        result = SocketManager.sendWarehouse(3, [selected_warehouse])
+        if result == "033|":
+            return
+        result = result[4:]
+        result = ast.literal_eval(result)
+        for item in result:
+            if item[0].lower() != search_term and item[0].lower() in search_term:
+                item_list.insert(
+                    "",
+                    "end",
+                    values=(item[0], item[1], "所在仓库: " + selected_warehouse),
+                )
+
+    for selected_warehouse in warehouses:
+        result = SocketManager.sendWarehouse(3, [selected_warehouse])
+        if result == "033|":
+            return
+        result = result[4:]
+        result = ast.literal_eval(result)
+        for item in result:
+            if item[0].lower() != search_term and search_term in item[0].lower():
+                item_list.insert(
+                    "",
+                    "end",
+                    values=(item[0], item[1], "所在仓库: " + selected_warehouse),
+                )
+
+
 # 打开仓库界面
 def open_warehouse(group):
 
-    update_warehouse()
-
-    global type
-    type = group
+    global Type
+    Type = group
 
     warehouse_root = tk.Tk()
     warehouse_root.title("仓库管理")
@@ -152,6 +205,9 @@ def open_warehouse(group):
     global warehouse_combobox, item_list, item_name_entry, item_quantity_entry, item_remark_entry
 
     global add_item_button, delete_item_button
+
+    global search_entry
+
     warehouse_combobox = None
     item_list = None
 
@@ -180,9 +236,23 @@ def open_warehouse(group):
     # 仓库选择
     warehouse_label = tk.Label(warehouse_root, text="选择仓库:")
     warehouse_label.pack(padx=10, pady=10)
-    warehouse_combobox = ttk.Combobox(warehouse_root, values=warehouses)
+    warehouse_combobox = ttk.Combobox(warehouse_root, values=[])
     warehouse_combobox.bind("<<ComboboxSelected>>", update_item_list)
     warehouse_combobox.pack(padx=10, pady=10)
+
+    update_warehouse()
+
+    # 搜索框和按钮
+    search_frame = tk.Frame(warehouse_root)
+    search_frame.pack(padx=10, pady=10)
+
+    search_label = tk.Label(search_frame, text="搜索物品:")
+    search_label.pack(side=tk.LEFT, padx=(0, 5))
+    search_entry = tk.Entry(search_frame)
+    search_entry.pack(side=tk.LEFT, padx=(0, 5))
+
+    search_button = tk.Button(search_frame, text="搜索", command=search_item)
+    search_button.pack(side=tk.LEFT)
 
     # 物品列表
     item_list = ttk.Treeview(
@@ -220,11 +290,11 @@ def open_warehouse(group):
     delete_item_button.pack(side=tk.LEFT)
 
     # 通过权限控制该按钮是否可用
-    item_name_label.config(state=tk.NORMAL if type == 0 else tk.DISABLED)
-    item_quantity_label.config(state=tk.NORMAL if type == 0 else tk.DISABLED)
-    item_remark_label.config(state=tk.NORMAL if type == 0 else tk.DISABLED)
-    add_button.config(state=tk.NORMAL if type == 0 else tk.DISABLED)
-    delete_button.config(state=tk.NORMAL if type == 0 else tk.DISABLED)
+    item_name_label.config(state=tk.NORMAL if Type == 0 else tk.DISABLED)
+    item_quantity_label.config(state=tk.NORMAL if Type == 0 else tk.DISABLED)
+    item_remark_label.config(state=tk.NORMAL if Type == 0 else tk.DISABLED)
+    add_button.config(state=tk.NORMAL if Type == 0 else tk.DISABLED)
+    delete_button.config(state=tk.NORMAL if Type == 0 else tk.DISABLED)
 
     warehouse_root.mainloop()
 
