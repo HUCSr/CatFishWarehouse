@@ -3,6 +3,7 @@ from tkinter import ttk, messagebox
 from openpyxl import Workbook
 import SocketManager
 import ast
+import matplotlib.pyplot as plt
 
 
 def update_warehouse():
@@ -193,6 +194,30 @@ def search_item():
                 )
 
 
+# 展示仓库
+def show_inventory_chart():
+    selected_warehouse = warehouse_combobox.get()
+    if selected_warehouse not in warehouses:
+        messagebox.showwarning("警告", "请选择一个有效的仓库。")
+        return
+
+    item_names = []
+    item_quantities = []
+
+    for item in warehouses[selected_warehouse]:
+        item_names.append(item[0])
+        item_quantities.append(item[1])
+
+    plt.figure(figsize=(10, 6))
+    plt.bar(item_names, item_quantities, color="skyblue")
+    plt.xlabel("物品名称")
+    plt.ylabel("库存数量")
+    plt.title(f"{selected_warehouse} 仓库库存情况")
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.show()
+
+
 # 打开仓库界面
 def open_warehouse(group):
 
@@ -295,6 +320,11 @@ def open_warehouse(group):
     item_remark_label.config(state=tk.NORMAL if Type == 0 else tk.DISABLED)
     add_button.config(state=tk.NORMAL if Type == 0 else tk.DISABLED)
     delete_button.config(state=tk.NORMAL if Type == 0 else tk.DISABLED)
+
+    chart_button = tk.Button(
+        warehouse_frame, text="查看库存图表", command=show_inventory_chart
+    )
+    chart_button.pack(side=tk.LEFT)
 
     warehouse_root.mainloop()
 

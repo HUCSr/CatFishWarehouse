@@ -20,7 +20,7 @@ if not os.path.exists(log_folder):
 
 log_file = os.path.join(log_folder, "server.log")
 handler = TimedRotatingFileHandler(
-    log_file, when="midnight", interval=1, backupCount=7, encoding="utf-8", mode="a"
+    log_file, when="midnight", interval=1, backupCount=7, encoding="utf-8"
 )
 formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 handler.setFormatter(formatter)
