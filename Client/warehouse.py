@@ -4,20 +4,23 @@ from openpyxl import Workbook
 import SocketManager
 import ast
 import matplotlib.pyplot as plt
+import warehouseDirectory
+import GlobalVar
 
 
-def update_warehouse():
-    global warehouses
-    result = SocketManager.sendWarehouse(0, None)
-    result = result[4:]
-    if result == "":
-        warehouses = []
-        return
-    result = ast.literal_eval(result)
-    warehouses = result
-    if type(warehouses) == type("a"):
-        warehouses = [warehouses]
-    pass
+GlobalVar._init()
+# def update_warehouse():
+#     global warehouses
+#     result = SocketManager.sendWarehouse(0, None)
+#     result = result[4:]
+#     if result == "":
+#         warehouses = []
+#         return
+#     result = ast.literal_eval(result)
+#     warehouses = result
+#     if type(warehouses) == type("a"):
+#         warehouses = [warehouses]
+#     pass
 
 
 def on_item_select(event):
@@ -32,36 +35,36 @@ def on_item_select(event):
             item_remark_entry.insert(0, item_values[2])
 
 
-# 添加仓库
-def add_warehouse(entry):
-    if Type == 0:
-        new_warehouse = entry.get().strip()
-        if not new_warehouse:
-            messagebox.showwarning("警告", "仓库名不能为空。")
-            return
-        if new_warehouse in warehouses or new_warehouse == "inventory_history":
-            messagebox.showwarning("警告", "仓库已存在。")
-            return
-        if (new_warehouse[0]).isdigit():
-            messagebox.showwarning("警告", "仓库名不能以数字开头")
-            return
+# # 添加仓库
+# def add_warehouse(entry):
+#     if Type == 0:
+#         new_warehouse = entry.get().strip()
+#         if not new_warehouse:
+#             messagebox.showwarning("警告", "仓库名不能为空。")
+#             return
+#         if new_warehouse in warehouses or new_warehouse == "inventory_history":
+#             messagebox.showwarning("警告", "仓库已存在。")
+#             return
+#         if (new_warehouse[0]).isdigit():
+#             messagebox.showwarning("警告", "仓库名不能以数字开头")
+#             return
 
-        result = SocketManager.sendWarehouse(1, [new_warehouse])
-        update_warehouse()
-        # 清空
-        entry.delete(0, tk.END)
+#         result = SocketManager.sendWarehouse(1, [new_warehouse])
+#         update_warehouse()
+#         # 清空
+#         entry.delete(0, tk.END)
 
 
-# 删除仓库
-def delete_warehouse():
-    if Type == 0:
-        if selected_warehouse in warehouses:
-            result = SocketManager.sendWarehouse(2, [selected_warehouse])
-            update_warehouse()
-            # 清空
-            now_warehouse = ""
-        else:
-            messagebox.showwarning("警告", "请选择一个有效的仓库。")
+# # 删除仓库
+# def delete_warehouse():
+#     if Type == 0:
+#         if selected_warehouse in warehouses:
+#             result = SocketManager.sendWarehouse(2, [selected_warehouse])
+#             update_warehouse()
+#             # 清空
+#             now_warehouse = ""
+#         else:
+#             messagebox.showwarning("警告", "请选择一个有效的仓库。")
 
 
 # 更新物品列表
@@ -69,21 +72,20 @@ def update_item_list(event):
     for item in item_list.get_children():
         item_list.delete(item)
 
-    if selected_warehouse in warehouses:
-        print("selected_warehouse")
-        print(selected_warehouse)
-        result = SocketManager.sendWarehouse(3, [selected_warehouse])
-        if result == "033|":
-            return
-        result = result[4:]
-        result = ast.literal_eval(result)
-        print("AWA")
-        print(type(type(result[0])))
-        if type((result[0])) == type("a"):
-            item_list.insert("", "end", values=result)
-        else:
-            for item in result:
-                item_list.insert("", "end", values=item)
+    print("selected_warehouse")
+    print(selected_warehouse)
+    result = SocketManager.sendWarehouse(3, [selected_warehouse])
+    if result == "033|":
+        return
+    result = result[4:]
+    result = ast.literal_eval(result)
+    print("AWA")
+    print(type(type(result[0])))
+    if type((result[0])) == type("a"):
+        item_list.insert("", "end", values=result)
+    else:
+        for item in result:
+            item_list.insert("", "end", values=item)
 
 
 # 添加物品
@@ -100,9 +102,9 @@ def add_item():
             messagebox.showwarning("警告", "物品数量必须是大于0的数字。")
             return
 
-        if selected_warehouse not in warehouses:
-            messagebox.showwarning("警告", "请选择一个有效的仓库。")
-            return
+        # if selected_warehouse not in warehouses:
+        #     messagebox.showwarning("警告", "请选择一个有效的仓库。")
+        #     return
 
         result = SocketManager.sendWarehouse(
             4, [selected_warehouse, item_name, item_quantity, item_remark]
@@ -129,9 +131,9 @@ def delete_item():
             messagebox.showwarning("警告", "物品数量必须是大于0的数字。")
             return
 
-        if selected_warehouse not in warehouses:
-            messagebox.showwarning("警告", "请选择一个有效的仓库。")
-            return
+        # if selected_warehouse not in warehouses:
+        #     messagebox.showwarning("警告", "请选择一个有效的仓库。")
+        #     return
 
         result = SocketManager.sendWarehouse(
             5, [selected_warehouse, item_name, item_quantity, item_remark]
@@ -145,66 +147,66 @@ def delete_item():
         item_remark_entry.delete(0, tk.END)
 
 
-# 搜索物品
-def search_item():
-    search_term = search_entry.get().strip().lower()
-    for item in item_list.get_children():
-        item_list.delete(item)
+# # 搜索物品
+# def search_item():
+#     search_term = search_entry.get().strip().lower()
+#     for item in item_list.get_children():
+#         item_list.delete(item)
 
-    for selected_warehouse in warehouses:
-        print(selected_warehouse)
-        print("selected_warehouse")
-        result = SocketManager.sendWarehouse(3, [selected_warehouse])
-        if result == "033|":
-            return
-        print("===")
-        print(result)
-        result = result[4:]
-        result = ast.literal_eval(result)
-        for item in result:
-            if search_term == item[0].lower():
-                item_list.insert(
-                    "",
-                    "end",
-                    values=(
-                        item[0],
-                        item[1],
-                        "所在仓库: " + selected_warehouse.split("/")[-1],
-                    ),
-                )
-    for selected_warehouse in warehouses:
-        result = SocketManager.sendWarehouse(3, [selected_warehouse])
-        if result == "033|":
-            return
-        result = result[4:]
-        result = ast.literal_eval(result)
-        for item in result:
-            if item[0].lower() != search_term and item[0].lower() in search_term:
-                item_list.insert(
-                    "",
-                    "end",
-                    values=(item[0], item[1], "所在仓库: " + selected_warehouse),
-                )
+#     for selected_warehouse in warehouses:
+#         print(selected_warehouse)
+#         print("selected_warehouse")
+#         result = SocketManager.sendWarehouse(3, [selected_warehouse])
+#         if result == "033|":
+#             return
+#         print("===")
+#         print(result)
+#         result = result[4:]
+#         result = ast.literal_eval(result)
+#         for item in result:
+#             if search_term == item[0].lower():
+#                 item_list.insert(
+#                     "",
+#                     "end",
+#                     values=(
+#                         item[0],
+#                         item[1],
+#                         "所在仓库: " + selected_warehouse.split("/")[-1],
+#                     ),
+#                 )
+#     for selected_warehouse in warehouses:
+#         result = SocketManager.sendWarehouse(3, [selected_warehouse])
+#         if result == "033|":
+#             return
+#         result = result[4:]
+#         result = ast.literal_eval(result)
+#         for item in result:
+#             if item[0].lower() != search_term and item[0].lower() in search_term:
+#                 item_list.insert(
+#                     "",
+#                     "end",
+#                     values=(item[0], item[1], "所在仓库: " + selected_warehouse),
+#                 )
 
-    for selected_warehouse in warehouses:
-        result = SocketManager.sendWarehouse(3, [selected_warehouse])
-        if result == "033|":
-            return
-        result = result[4:]
-        result = ast.literal_eval(result)
-        for item in result:
-            if item[0].lower() != search_term and search_term in item[0].lower():
-                item_list.insert(
-                    "",
-                    "end",
-                    values=(item[0], item[1], "所在仓库: " + selected_warehouse),
-                )
+#     for selected_warehouse in warehouses:
+#         result = SocketManager.sendWarehouse(3, [selected_warehouse])
+#         if result == "033|":
+#             return
+#         result = result[4:]
+#         result = ast.literal_eval(result)
+#         for item in result:
+#             if item[0].lower() != search_term and search_term in item[0].lower():
+#                 item_list.insert(
+#                     "",
+#                     "end",
+#                     values=(item[0], item[1], "所在仓库: " + selected_warehouse),
+#                 )
 
 
 def show_inventory_chart():
-    if selected_warehouse not in warehouses:
-        messagebox.showwarning("警告", "请选择一个有效的仓库。")
-        return
+    # if selected_warehouse not in warehouses:
+    #     messagebox.showwarning("警告", "请选择一个有效的仓库。")
+    #     return
 
     item_names = []
     item_quantities = []
@@ -270,7 +272,19 @@ def show_inventory_history():
 
 
 def select_warehouse():
+    print("AWA")
+    warehouseDirectory.open_warehouse_directory(Type, update_directory)
+    print("AWA")
     pass
+
+
+def update_directory(new_directory):
+    global selected_warehouse
+    global warehouse_root
+    selected_warehouse = new_directory
+    print(selected_warehouse)
+    warehouse_root.title("当前仓库: " + selected_warehouse.split("/")[-1])
+    update_item_list(None)
 
 
 # 打开仓库界面
@@ -327,19 +341,19 @@ def open_warehouse(group):
     )
     select_warehouse_button.pack(padx=10, pady=10)
 
-    update_warehouse()
+    # update_warehouse()
 
     # 搜索框和按钮
-    search_frame = tk.Frame(warehouse_root)
-    search_frame.pack(padx=10, pady=10)
+    # search_frame = tk.Frame(warehouse_root)
+    # search_frame.pack(padx=10, pady=10)
 
-    search_label = tk.Label(search_frame, text="搜索物品:")
-    search_label.pack(side=tk.LEFT, padx=(0, 5))
-    search_entry = tk.Entry(search_frame)
-    search_entry.pack(side=tk.LEFT, padx=(0, 5))
+    # search_label = tk.Label(search_frame, text="搜索物品:")
+    # search_label.pack(side=tk.LEFT, padx=(0, 5))
+    # search_entry = tk.Entry(search_frame)
+    # search_entry.pack(side=tk.LEFT, padx=(0, 5))
 
-    search_button = tk.Button(search_frame, text="搜索", command=search_item)
-    search_button.pack(side=tk.LEFT)
+    # search_button = tk.Button(search_frame, text="搜索", command=search_item)
+    # search_button.pack(side=tk.LEFT)
 
     # 物品列表
     item_list = ttk.Treeview(
@@ -396,9 +410,9 @@ def open_warehouse(group):
 
 # 导出仓库
 def export_warehouse():
-    if selected_warehouse not in warehouses:
-        messagebox.showwarning("警告", "请选择一个有效的仓库。")
-        return
+    # if selected_warehouse not in warehouses:
+    #     messagebox.showwarning("警告", "请选择一个有效的仓库。")
+    #     return
 
     wb = Workbook()
     ws = wb.active
@@ -407,8 +421,14 @@ def export_warehouse():
     # 表头
     ws.append(["名称", "库存", "备注"])
 
+    result = SocketManager.sendWarehouse(3, [selected_warehouse])
+    if result == "033|":
+        return
+    result = result[4:]
+    result = ast.literal_eval(result)
+
     # 写入数据
-    for item in warehouses[selected_warehouse]:
+    for item in result:
         ws.append(item)
 
     # 保存

@@ -4,6 +4,7 @@ from openpyxl import Workbook
 import SocketManager
 import ast
 import matplotlib.pyplot as plt
+import GlobalVar
 
 
 def on_directory_select(event):
@@ -117,15 +118,22 @@ def open_directory():
     global open_button, back_button
     selected_directory = directory_list.selection()
     if selected_directory:
-        selected_directory = directory_list.item(selected_directory[0], "values")[0]
-    directory = directory + "/" + selected_directory
-    update_directory()
-    if "/" in directory:
-        back_button.config(state=tk.NORMAL)
-    else:
-        back_button.config(state=tk.DISABLED)
-    open_button.config(state=tk.DISABLED)
-    pass
+        if directory_list.item(selected_directory[0], "values")[2] == "分类":
+            selected_directory = directory_list.item(selected_directory[0], "values")[0]
+            directory = directory + "/" + selected_directory
+            update_directory()
+            if "/" in directory:
+                back_button.config(state=tk.NORMAL)
+            else:
+                back_button.config(state=tk.DISABLED)
+            open_button.config(state=tk.DISABLED)
+            pass
+        else:
+            selected_directory = directory_list.item(selected_directory[0], "values")[0]
+            directory = directory + "/" + selected_directory
+            GlobalVar.set_value("warehouse", directory)
+            directory_root.destroy()
+            callback_func(directory)
 
 
 def back_directory():
@@ -141,7 +149,11 @@ def back_directory():
     open_button.config(state=tk.DISABLED)
 
 
-def open_warehouse_directory(group):
+def open_warehouse_directory(group, callback):
+
+    global callback_func
+
+    callback_func = callback
 
     global Type, directory, now_directory
 
@@ -150,6 +162,7 @@ def open_warehouse_directory(group):
     global directory_list
 
     global delete_button, delete_category_button, back_button, open_button
+    global directory_root
 
     directory = ""
 
@@ -217,8 +230,6 @@ def open_warehouse_directory(group):
     update_directory()
 
     directory_root.mainloop()
-
-    pass
 
 
 if __name__ == "__main__":

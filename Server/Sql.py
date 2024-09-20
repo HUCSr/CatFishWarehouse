@@ -138,32 +138,37 @@ def Warehouse_list():
     return str(warehouses)[1:-1]
 
 
-def add_warehouse(name):
-    conn = connect("warehouse.db")
-    c = conn.cursor()
-    c.execute(
-        """CREATE TABLE IF NOT EXISTS """
-        + str(name)
-        + """
-        (item_name TEXT PRIMARY KEY NOT NULL,
-        item_quantity  INT NOT NULL,
-        item_remark    TEXT NOT NULL);"""
-    )
-    conn.commit()
-    conn.close()
-    return 0
+# def add_warehouse(name):
+#     name = name.replace("/", "_")
+#     conn = connect("warehouse.db")
+#     c = conn.cursor()
+#     c.execute(
+#         """CREATE TABLE IF NOT EXISTS """
+#         + str(name)
+#         + """
+#         (item_name TEXT PRIMARY KEY NOT NULL,
+#         item_quantity  INT NOT NULL,
+#         item_remark    TEXT NOT NULL);"""
+#     )
+#     conn.commit()
+#     conn.close()
+#     return 0
 
 
-def del_warehouse(name):
-    conn = connect("warehouse.db")
-    c = conn.cursor()
-    c.execute("""drop table if EXISTS """ + name + ";")
-    conn.commit()
-    conn.close()
-    return 0
+# def del_warehouse(name):
+#     name = name.replace("/", "_")
+#     conn = connect("warehouse.db")
+#     c = conn.cursor()
+#     c.execute("""drop table if EXISTS """ + name + ";")
+#     conn.commit()
+#     conn.close()
+#     return 0
 
 
 def item_in_warehouse(name):
+    print("name")
+    print(name)
+    name = name.replace("/", "_")
     conn = connect("warehouse.db")
     c = conn.cursor()
     result = c.execute("SELECT item_name, item_quantity, item_remark FROM " + name)
@@ -673,5 +678,5 @@ def delete_directory(directory, t, f, path):
 #     conn.commit()
 #     conn.close()
 #     return 0
-delete_directory("/test/111", 0, 1, "/test/111")
-# create_directory("/test/111", 0, 1, "/test/111")
+# delete_directory("/test/111", 0, 1, "/test/111")
+# # create_directory("/test/111", 0, 1, "/test/111")
