@@ -2,6 +2,7 @@ import sqlite3
 import datetime
 import os
 import json
+import re
 
 
 def connect(name):
@@ -264,13 +265,16 @@ def del_item(lists):
         with open(file_path, "r", encoding="utf-8") as file:
             history_data = json.load(file)
 
+    now = datetime.datetime.now()
+    time_str = now.strftime("%Y-%m-%d %H:%M:%S")
+
     if history_data.get(item_name) == None:
         history_data[item_name] = []
     history_data[item_name].append(
         {
             "quantity": item_quantity,
             "operation_type": "出库",
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": time_str,
             "remark": item_remark,
         }
     )
@@ -289,3 +293,385 @@ def get_histroy(item):
     return str(history_data)
 
     pass
+
+
+def get_directory(directory):
+
+    if "/" not in directory:
+        directory = []
+    else:
+        directory = directory.split("/")[1:]
+    print(directory)
+    file_path = "directory.json"
+
+    if not os.path.exists(file_path):
+        directory_data = {"files": []}
+        with open(file_path, "w", encoding="utf-8") as file:
+            json.dump(directory_data, file)
+
+    else:
+        with open(file_path, "r", encoding="utf-8") as file:
+            directory_data = json.load(file)
+
+    now_directory = directory_data
+
+    for file in directory:
+        print(file)
+        for _file in now_directory["files"]:
+            if file == _file["name"]:
+                now_directory = _file
+    print("now_directory")
+    print(now_directory)
+
+    result = []
+
+    if len(now_directory["files"]) == 0:
+        return str({})
+
+    else:
+        for file in now_directory["files"]:
+            result.append(
+                {"name": file["name"], "date": file["date"], "type": file["type"]}
+            )
+
+        return str(result)
+
+
+def create_directory(directory, t, f, path):
+    path = path.replace("/", "_")
+    print(directory)
+    print(t)
+    if t == 0:
+
+        file_path = "directory.json"
+
+        if not os.path.exists(file_path):
+            directory_data = {"files": []}
+            with open(file_path, "w", encoding="utf-8") as file:
+                json.dump(directory_data, file)
+
+        else:
+            with open(file_path, "r", encoding="utf-8") as file:
+                directory_data = json.load(file)
+
+        directory = directory.split("/")
+        print("TTT")
+        print(directory)
+        print(directory_data)
+        if len(directory) == 2:
+            count = 0
+            for file in directory_data["files"]:
+                st = file["name"]
+                if (
+                    re.fullmatch(directory[-1], rf"^{re.escape(st)}_(\d+)$")
+                    or file["name"] == directory[-1]
+                ):
+                    count += 1
+            print(directory_data)
+            print(directory_data["files"])
+            print(directory[-1])
+            if f == 0:
+                now = datetime.datetime.now()
+                time_str = now.strftime("%Y-%m-%d %H:%M:%S")
+                if count == 0:
+                    directory_data["files"].append(
+                        {
+                            "name": directory[-1],
+                            "date": time_str,
+                            "type": "分类",
+                            "files": [],
+                        }
+                    )
+                else:
+                    directory_data["files"].append(
+                        {
+                            "name": directory[-1] + "_" + str(count),
+                            "date": time_str,
+                            "type": "分类",
+                            "files": [],
+                        }
+                    )
+            else:
+                now = datetime.datetime.now()
+                time_str = now.strftime("%Y-%m-%d %H:%M:%S")
+                if count == 0:
+                    directory_name = directory[-1]
+                else:
+                    directory_name = directory[-1] + "_" + str(count)
+
+                directory_data["files"].append(
+                    {
+                        "name": directory_name,
+                        "date": time_str,
+                        "type": "仓库",
+                        "files": [],
+                    }
+                )
+
+                if count == 0:
+                    directory_name = path
+                else:
+                    directory_name = path + "_" + str(count)
+
+                print(directory_name)
+                conn = connect("warehouse.db")
+                c = conn.cursor()
+                c.execute(
+                    """CREATE TABLE IF NOT EXISTS """
+                    + str(directory_name)
+                    + """
+                    (item_name TEXT PRIMARY KEY NOT NULL,
+                    item_quantity  INT NOT NULL,
+                    item_remark    TEXT NOT NULL);"""
+                )
+                print(directory_name)
+                conn.commit()
+                print(directory_name)
+                conn.close()
+            print(directory_data)
+            with open(file_path, "w", encoding="utf-8") as file:
+                json.dump(directory_data, file)
+            return
+
+        print("===")
+        print(directory_data["files"])
+        directory_data["files"] = create_directory(
+            directory[1:], directory_data["files"], f, path
+        )
+
+        with open(file_path, "w", encoding="utf-8") as file:
+            json.dump(directory_data, file)
+    else:
+        print("t")
+        print(t)
+        print(directory)
+        if len(directory) == 1:
+            count = 0
+            for file in t:
+                st = file["name"]
+                if (
+                    re.fullmatch(directory[-1], rf"^{re.escape(st)}_(\d+)$")
+                    or file["name"] == directory[-1]
+                ):
+                    count += 1
+            if f == 0:
+                now = datetime.datetime.now()
+                time_str = now.strftime("%Y-%m-%d %H:%M:%S")
+                if count == 0:
+                    t.append(
+                        {
+                            "name": directory[-1],
+                            "date": time_str,
+                            "type": "分类",
+                            "files": [],
+                        }
+                    )
+                else:
+                    t.append(
+                        {
+                            "name": directory[-1] + "_" + str(count),
+                            "date": time_str,
+                            "type": "分类",
+                            "files": [],
+                        }
+                    )
+            else:
+
+                now = datetime.datetime.now()
+                time_str = now.strftime("%Y-%m-%d %H:%M:%S")
+                if count == 0:
+                    directory_name = directory[-1]
+                else:
+                    directory_name = directory[-1] + "_" + str(count)
+                print(directory_name)
+                print(directory_name)
+                t.append(
+                    {
+                        "name": directory_name,
+                        "date": time_str,
+                        "type": "仓库",
+                        "files": [],
+                    }
+                )
+
+                if count == 0:
+                    directory_name = path
+                else:
+                    directory_name = path + "_" + str(count)
+
+                conn = connect("warehouse.db")
+                c = conn.cursor()
+                c.execute(
+                    """CREATE TABLE IF NOT EXISTS """
+                    + str(directory_name)
+                    + """
+                    (item_name TEXT PRIMARY KEY NOT NULL,
+                    item_quantity  INT NOT NULL,
+                    item_remark    TEXT NOT NULL);"""
+                )
+                conn.commit()
+                conn.close()
+        else:
+            for i in range(len(t)):
+                if t[i]["name"] == directory[0]:
+                    t[i]["files"] = create_directory(
+                        directory[1:], t[i]["files"], f, path
+                    )
+
+        return t
+
+
+def delete_directory(directory, t, f, path):
+    path = path.replace("/", "_")
+    print(directory)
+    print(t)
+    if t == 0:
+
+        file_path = "directory.json"
+
+        if not os.path.exists(file_path):
+            directory_data = {"files": []}
+            with open(file_path, "w", encoding="utf-8") as file:
+                json.dump(directory_data, file)
+
+        else:
+            with open(file_path, "r", encoding="utf-8") as file:
+                directory_data = json.load(file)
+
+        directory = directory.split("/")
+        print(directory)
+        if len(directory) == 2:
+            count = 0
+            for file in directory_data["files"]:
+                st = file["name"]
+                if (
+                    re.fullmatch(directory[-1], rf"^{re.escape(st)}_(\d+)$")
+                    or file["name"] == directory[-1]
+                ):
+                    count += 1
+            count -= 1
+            if f == 0:
+                if count == 0:
+                    directory_name = directory[-1]
+                else:
+                    directory_name = directory[-1] + "_" + str(count)
+                index = 0
+                for i in range(len(directory_data["files"])):
+                    st = directory_data["files"][i]["name"]
+                    if directory_data["files"][i]["name"] == directory_name:
+                        index = i
+                        break
+                print(index)
+                print(directory_data["files"])
+                del directory_data["files"][index]
+            else:
+                if count == 0:
+                    directory_name = directory[-1]
+                else:
+                    directory_name = directory[-1] + "_" + str(count)
+                index = 0
+                for i in range(len(directory_data["files"])):
+                    st = directory_data["files"][i]["name"]
+                    if directory_data["files"][i]["name"] == directory_name:
+                        index = i
+                        break
+                print(index)
+                print(directory_data["files"])
+                del directory_data["files"][index]
+                if count == 0:
+                    directory_name = path
+                else:
+                    directory_name = path + "_" + str(count)
+                conn = connect("warehouse.db")
+                c = conn.cursor()
+                c.execute("""drop table if EXISTS """ + directory_name + ";")
+                conn.commit()
+                conn.close()
+            print(directory_data)
+            with open(file_path, "w", encoding="utf-8") as file:
+                json.dump(directory_data, file)
+            return
+
+        directory_data["files"] = delete_directory(
+            directory[1:], directory_data["files"], f, path
+        )
+
+        with open(file_path, "w", encoding="utf-8") as file:
+            json.dump(directory_data, file)
+    else:
+        if len(directory) == 1:
+            count = 0
+            for file in t:
+                st = file["name"]
+                if (
+                    re.fullmatch(directory[-1], rf"^{re.escape(st)}_(\d+)$")
+                    or file["name"] == directory[-1]
+                ):
+                    count += 1
+            count -= 1
+            if f == 0:
+                if count == 0:
+                    directory_name = directory[-1]
+                else:
+                    directory_name = directory[-1] + "_" + str(count)
+                index = 0
+                for i in range(len(t)):
+                    st = t[i]["name"]
+                    if t[i]["name"] == directory_name:
+                        index = i
+                        break
+                print(index)
+                print(t)
+                del t[index]
+            else:
+                if count == 0:
+                    directory_name = directory[-1]
+                else:
+                    directory_name = directory[-1] + "_" + str(count)
+                index = 0
+                print("directory_name")
+                print(directory_name)
+                print(path)
+                for i in range(len(t)):
+                    st = t[i]["name"]
+                    if t[i]["name"] == directory_name:
+                        index = i
+                        break
+                print(index)
+                print(t)
+                del t[index]
+                if count == 0:
+                    directory_name = path
+                else:
+                    directory_name = path + "_" + str(count)
+                conn = connect("warehouse.db")
+                c = conn.cursor()
+                c.execute("""drop table if EXISTS """ + directory_name + ";")
+                conn.commit()
+                conn.close()
+        else:
+            for i in range(len(t)):
+                if t[i]["name"] == directory[0]:
+                    t[i]["files"] = delete_directory(
+                        directory[1:], t[i]["files"], f, path
+                    )
+
+        return t
+
+
+# def add_warehouse(name):
+#     conn = connect("warehouse.db")
+#     c = conn.cursor()
+#     c.execute(
+#         """CREATE TABLE IF NOT EXISTS """
+#         + str(name)
+#         + """
+#         (item_name TEXT PRIMARY KEY NOT NULL,
+#         item_quantity  INT NOT NULL,
+#         item_remark    TEXT NOT NULL);"""
+#     )
+#     conn.commit()
+#     conn.close()
+#     return 0
+delete_directory("/test/111", 0, 1, "/test/111")
+# create_directory("/test/111", 0, 1, "/test/111")

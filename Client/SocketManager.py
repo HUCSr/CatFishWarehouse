@@ -62,6 +62,25 @@ def sendWarehouse(type, namelist):
             break
 
 
+def sendDirectory(type, namelist):
+    if type <= 2:
+        client_socket.send(("0" + str(type) + "5|" + namelist).encode())
+    while True:
+        try:
+            # 接收服务器端消息
+            data = client_socket.recv(1024)
+            print(data)
+            if not data:
+                return -1
+                # 如果服务器端断开连接，退出循环
+            message = data.decode()
+            print("message")
+            print(message)
+            return message
+        except:
+            break
+
+
 def sendLogin(username, password, type):
     # 发送登录请求
     client_socket.send(

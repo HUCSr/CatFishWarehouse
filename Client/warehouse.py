@@ -10,11 +10,13 @@ def update_warehouse():
     global warehouses
     result = SocketManager.sendWarehouse(0, None)
     result = result[4:]
+    if result == "":
+        warehouses = []
+        return
     result = ast.literal_eval(result)
     warehouses = result
     if type(warehouses) == type("a"):
         warehouses = [warehouses]
-    warehouse_combobox["values"] = warehouses
     pass
 
 
@@ -53,12 +55,11 @@ def add_warehouse(entry):
 # 删除仓库
 def delete_warehouse():
     if Type == 0:
-        selected_warehouse = warehouse_combobox.get()
         if selected_warehouse in warehouses:
             result = SocketManager.sendWarehouse(2, [selected_warehouse])
             update_warehouse()
             # 清空
-            warehouse_combobox.set("")
+            now_warehouse = ""
         else:
             messagebox.showwarning("警告", "请选择一个有效的仓库。")
 
@@ -68,7 +69,6 @@ def update_item_list(event):
     for item in item_list.get_children():
         item_list.delete(item)
 
-    selected_warehouse = warehouse_combobox.get()
     if selected_warehouse in warehouses:
         print("selected_warehouse")
         print(selected_warehouse)
@@ -100,7 +100,6 @@ def add_item():
             messagebox.showwarning("警告", "物品数量必须是大于0的数字。")
             return
 
-        selected_warehouse = warehouse_combobox.get()
         if selected_warehouse not in warehouses:
             messagebox.showwarning("警告", "请选择一个有效的仓库。")
             return
@@ -130,7 +129,6 @@ def delete_item():
             messagebox.showwarning("警告", "物品数量必须是大于0的数字。")
             return
 
-        selected_warehouse = warehouse_combobox.get()
         if selected_warehouse not in warehouses:
             messagebox.showwarning("警告", "请选择一个有效的仓库。")
             return
@@ -168,7 +166,11 @@ def search_item():
                 item_list.insert(
                     "",
                     "end",
-                    values=(item[0], item[1], "所在仓库: " + selected_warehouse),
+                    values=(
+                        item[0],
+                        item[1],
+                        "所在仓库: " + selected_warehouse.split("/")[-1],
+                    ),
                 )
     for selected_warehouse in warehouses:
         result = SocketManager.sendWarehouse(3, [selected_warehouse])
@@ -200,7 +202,6 @@ def search_item():
 
 
 def show_inventory_chart():
-    selected_warehouse = warehouse_combobox.get()
     if selected_warehouse not in warehouses:
         messagebox.showwarning("警告", "请选择一个有效的仓库。")
         return
@@ -268,40 +269,46 @@ def show_inventory_history():
         )
 
 
+def select_warehouse():
+    pass
+
+
 # 打开仓库界面
 def open_warehouse(group):
 
     global Type
     Type = group
 
-    warehouse_root = tk.Toplevel()
-    warehouse_root.title("仓库管理")
+    global warehouse_root
 
-    global warehouse_combobox, item_list, item_name_entry, item_quantity_entry, item_remark_entry
+    warehouse_root = tk.Toplevel()
+    warehouse_root.title("当前仓库: 无")
+
+    global selected_warehouse, item_list, item_name_entry, item_quantity_entry, item_remark_entry
 
     global add_item_button, delete_item_button
 
     global search_entry
 
-    warehouse_combobox = None
+    selected_warehouse = ""
     item_list = None
 
     # 添加/删除仓库
     warehouse_frame = tk.Frame(warehouse_root)
     warehouse_frame.pack(padx=10, pady=10)
 
-    warehouse_entry = tk.Entry(warehouse_frame)
-    warehouse_entry.pack(side=tk.LEFT, padx=(0, 5))
+    # warehouse_entry = tk.Entry(warehouse_frame)
+    # warehouse_entry.pack(side=tk.LEFT, padx=(0, 5))
 
-    add_button = tk.Button(
-        warehouse_frame, text="添加仓库", command=lambda: add_warehouse(warehouse_entry)
-    )
-    add_button.pack(side=tk.LEFT, padx=(0, 5))
+    # add_button = tk.Button(
+    #     warehouse_frame, text="添加仓库", command=lambda: add_warehouse(warehouse_entry)
+    # )
+    # add_button.pack(side=tk.LEFT, padx=(0, 5))
 
-    delete_button = tk.Button(
-        warehouse_frame, text="删除仓库", command=delete_warehouse
-    )
-    delete_button.pack(side=tk.LEFT)
+    # delete_button = tk.Button(
+    #     warehouse_frame, text="删除仓库", command=delete_warehouse
+    # )
+    # delete_button.pack(side=tk.LEFT)
 
     export_button = tk.Button(
         warehouse_frame, text="导出仓库", command=export_warehouse
@@ -309,11 +316,16 @@ def open_warehouse(group):
     export_button.pack(side=tk.LEFT)
 
     # 仓库选择
-    warehouse_label = tk.Label(warehouse_root, text="选择仓库:")
-    warehouse_label.pack(padx=10, pady=10)
-    warehouse_combobox = ttk.Combobox(warehouse_root, values=[])
-    warehouse_combobox.bind("<<ComboboxSelected>>", update_item_list)
-    warehouse_combobox.pack(padx=10, pady=10)
+    # warehouse_label = tk.Label(warehouse_root, text="选择仓库:")
+    # warehouse_label.pack(padx=10, pady=10)
+    # warehouse_combobox = ttk.Combobox(warehouse_root, values=[])
+    # warehouse_combobox.bind("<<ComboboxSelected>>", update_item_list)
+    # warehouse_combobox.pack(padx=10, pady=10)
+
+    select_warehouse_button = tk.Button(
+        warehouse_root, text="选择仓库", command=select_warehouse
+    )
+    select_warehouse_button.pack(padx=10, pady=10)
 
     update_warehouse()
 
@@ -368,8 +380,6 @@ def open_warehouse(group):
     item_name_label.config(state=tk.NORMAL if Type == 0 else tk.DISABLED)
     item_quantity_label.config(state=tk.NORMAL if Type == 0 else tk.DISABLED)
     item_remark_label.config(state=tk.NORMAL if Type == 0 else tk.DISABLED)
-    add_button.config(state=tk.NORMAL if Type == 0 else tk.DISABLED)
-    delete_button.config(state=tk.NORMAL if Type == 0 else tk.DISABLED)
 
     chart_button = tk.Button(
         warehouse_frame, text="查看库存图表", command=show_inventory_chart
@@ -386,7 +396,6 @@ def open_warehouse(group):
 
 # 导出仓库
 def export_warehouse():
-    selected_warehouse = warehouse_combobox.get()
     if selected_warehouse not in warehouses:
         messagebox.showwarning("警告", "请选择一个有效的仓库。")
         return

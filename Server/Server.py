@@ -89,20 +89,20 @@ def handle_client(client_socket):
                 result = Sql.Warehouse_list()
                 sendMessage("003|" + str(result), client_socket)
                 pass
-            # 添加仓库
-            elif message[:3] == "013":
-                result = Sql.add_warehouse(message[4:])
-                sendMessage("013|", client_socket)
-                logger.info("The " + str(message[4:]) + " warehouse has been added")
+            # # 添加仓库
+            # elif message[:3] == "013":
+            #     result = Sql.add_warehouse(message[4:])
+            #     sendMessage("013|", client_socket)
+            #     logger.info("The " + str(message[4:]) + " warehouse has been added")
 
-                pass
-            # 删除仓库
-            elif message[:3] == "023":
-                result = Sql.del_warehouse(message[4:])
-                sendMessage("023|", client_socket)
-                logger.info("The " + str(message[4:]) + " warehouse has been deleted")
+            #     pass
+            # # 删除仓库
+            # elif message[:3] == "023":
+            #     result = Sql.del_warehouse(message[4:])
+            #     sendMessage("023|", client_socket)
+            #     logger.info("The " + str(message[4:]) + " warehouse has been deleted")
 
-                pass
+            #     pass
             # 获取仓库物品
             elif message[:3] == "033":
                 result = Sql.item_in_warehouse(message[4:])
@@ -166,6 +166,46 @@ def handle_client(client_socket):
             elif message[:3] == "024":
                 result = Sql.get_role(message[4:])
                 sendMessage("024|" + str(result), client_socket)
+                pass
+
+            # 查看当前仓库
+            elif message[:3] == "005":
+                result = Sql.get_directory(message[4:])
+                print("result")
+                print(result)
+                sendMessage("005|" + str(result), client_socket)
+                pass
+            # 新建分类
+            elif message[:3] == "015":
+                result = Sql.create_directory(message[4:], 0, 0, message[4:])
+                print("result")
+                print(result)
+                sendMessage("015|" + str(result), client_socket)
+                pass
+            # 新建仓库
+            elif message[:3] == "025":
+                result = Sql.create_directory(message[4:], 0, 1, message[4:])
+                sendMessage("025|" + str(result), client_socket)
+                logger.info("The " + str(message[4:]) + " warehouse has been added")
+                # result = Sql.create_directory(message[4:], 0)
+                # print("result")
+                # print(result)
+                pass
+            # 删除分类
+            elif message[:3] == "035":
+                result = Sql.delete_directory(message[4:], 0, 0, message[4:])
+                print("result")
+                print(result)
+                sendMessage("035|" + str(result), client_socket)
+                pass
+            # 删除仓库
+            elif message[:3] == "045":
+                result = Sql.delete_directory(message[4:], 0, 1, message[4:])
+                sendMessage("045|" + str(result), client_socket)
+                logger.info("The " + str(message[4:]) + " warehouse has been deleted")
+                # result = Sql.create_directory(message[4:], 0)
+                # print("result")
+                # print(result)
                 pass
     except:
         # 关闭连接
