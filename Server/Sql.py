@@ -138,6 +138,56 @@ def Warehouse_list():
     return str(warehouses)[1:-1]
 
 
+def search_item(lists):
+    name = lists[0]
+    number_lower = lists[1]
+    number_upper = lists[2]
+    print(lists)
+    conn = connect("warehouse.db")
+    c = conn.cursor()
+    result = c.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    warehouses = []
+    for warehouse in result:
+        print(warehouse[0])
+        if warehouse[0] == "inventory_history":
+            continue
+        warehouses.append(warehouse[0])
+    result = []
+    for warehouse in warehouses:
+        print("warehouse:" + warehouse)
+        print(
+            "SELECT * FROM "
+            + warehouse
+            + " WHERE name='"
+            + name
+            + "' AND item_quantity >= "
+            + str(number_lower)
+            + " AND item_quantity <= "
+            + str(number_upper)
+            + ";"
+        )
+        item_list = c.execute(
+            "SELECT * FROM "
+            + warehouse
+            + ' WHERE item_name="'
+            + name
+            + '" AND item_quantity >= '
+            + str(number_lower)
+            + " AND item_quantity <= "
+            + str(number_upper)
+            + ";"
+        )
+        print(item_list)
+        for item in item_list:
+            print(item[0])
+            print(item[1])
+            print(item[2])
+            result.append([item[0], item[1], warehouse])
+    return str(result)
+    # tables = cursor.fetchall()
+    pass
+
+
 # def add_warehouse(name):
 #     name = name.replace("/", "_")
 #     conn = connect("warehouse.db")
@@ -182,6 +232,8 @@ def item_in_warehouse(name):
 def add_item(lists):
     print(lists)
     name = lists[0]
+    name = name.replace("/", "_")
+    print(name)
     item_name = lists[1]
     item_quantity = int(lists[2])
     item_remark = lists[3]
@@ -239,6 +291,7 @@ def add_item(lists):
 def del_item(lists):
     print(lists)
     name = lists[0]
+    name = name.replace("/", "_")
     item_name = lists[1]
     item_quantity = int(lists[2])
     item_remark = lists[3]

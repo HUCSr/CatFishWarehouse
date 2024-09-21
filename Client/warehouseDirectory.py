@@ -168,7 +168,7 @@ def open_warehouse_directory(group, callback):
 
     now_directory = {}
 
-    directory_root = tk.Tk()
+    directory_root = tk.Toplevel()
     directory_root.title("选择仓库")
 
     directory_frame = tk.Frame(directory_root)

@@ -147,33 +147,43 @@ def delete_item():
         item_remark_entry.delete(0, tk.END)
 
 
-# # 搜索物品
-# def search_item():
-#     search_term = search_entry.get().strip().lower()
-#     for item in item_list.get_children():
-#         item_list.delete(item)
+# 搜索物品
+def search_item():
+    search_name = search_entry.get().strip().lower()
+    search_number_lower = search_entry_1.get().strip().lower()
+    if search_number_lower == "":
+        search_number_lower = "0"
+    search_number_upper = search_entry_2.get().strip().lower()
+    if search_number_upper == "":
+        search_number_upper = "2147483647"
+    for item in item_list.get_children():
+        item_list.delete(item)
 
-#     for selected_warehouse in warehouses:
-#         print(selected_warehouse)
-#         print("selected_warehouse")
-#         result = SocketManager.sendWarehouse(3, [selected_warehouse])
-#         if result == "033|":
-#             return
-#         print("===")
-#         print(result)
-#         result = result[4:]
-#         result = ast.literal_eval(result)
-#         for item in result:
-#             if search_term == item[0].lower():
-#                 item_list.insert(
-#                     "",
-#                     "end",
-#                     values=(
-#                         item[0],
-#                         item[1],
-#                         "所在仓库: " + selected_warehouse.split("/")[-1],
-#                     ),
-#                 )
+    result = SocketManager.sendWarehouse(
+        7, [search_name, search_number_lower, search_number_upper]
+    )
+
+    print("===")
+    print(result)
+    result = result[4:]
+    result = ast.literal_eval(result)
+    print(result)
+    if (result) == []:
+        return
+    if type(result[0]) != type([]):
+        result = [result]
+    for item in result:
+        item_list.insert(
+            "",
+            "end",
+            values=(
+                item[0],
+                item[1],
+                "所在仓库: " + item[2].replace("_", "/"),
+            ),
+        )
+
+
 #     for selected_warehouse in warehouses:
 #         result = SocketManager.sendWarehouse(3, [selected_warehouse])
 #         if result == "033|":
@@ -303,6 +313,8 @@ def open_warehouse(group):
     global add_item_button, delete_item_button
 
     global search_entry
+    global search_entry_1
+    global search_entry_2
 
     selected_warehouse = ""
     item_list = None
@@ -344,16 +356,25 @@ def open_warehouse(group):
     # update_warehouse()
 
     # 搜索框和按钮
-    # search_frame = tk.Frame(warehouse_root)
-    # search_frame.pack(padx=10, pady=10)
+    search_frame = tk.Frame(warehouse_root)
+    search_frame.pack(padx=10, pady=10)
 
-    # search_label = tk.Label(search_frame, text="搜索物品:")
-    # search_label.pack(side=tk.LEFT, padx=(0, 5))
-    # search_entry = tk.Entry(search_frame)
-    # search_entry.pack(side=tk.LEFT, padx=(0, 5))
+    search_label = tk.Label(search_frame, text="物品名:")
+    search_label.pack(side=tk.LEFT, padx=(0, 5))
+    search_entry = tk.Entry(search_frame, width=10)
+    search_entry.pack(side=tk.LEFT, padx=(0, 3))
 
-    # search_button = tk.Button(search_frame, text="搜索", command=search_item)
-    # search_button.pack(side=tk.LEFT)
+    search_label_1 = tk.Label(search_frame, text=", ")
+    search_label_1.pack(side=tk.LEFT, padx=(0, 5))
+    search_entry_1 = tk.Entry(search_frame, width=10)
+    search_entry_1.pack(side=tk.LEFT, padx=(0, 1))
+
+    search_label_2 = tk.Label(search_frame, text="<= 物品数量 <=")
+    search_label_2.pack(side=tk.LEFT, padx=(0, 5))
+    search_entry_2 = tk.Entry(search_frame, width=10)
+    search_entry_2.pack(side=tk.LEFT, padx=(0, 1))
+    search_button = tk.Button(search_frame, text="搜索", command=search_item)
+    search_button.pack(side=tk.LEFT)
 
     # 物品列表
     item_list = ttk.Treeview(
@@ -371,12 +392,12 @@ def open_warehouse(group):
 
     item_name_label = tk.Label(item_frame, text="名称:")
     item_name_label.pack(side=tk.LEFT, padx=(0, 5))
-    item_name_entry = tk.Entry(item_frame)
+    item_name_entry = tk.Entry(item_frame, width=10)
     item_name_entry.pack(side=tk.LEFT, padx=(0, 5))
 
     item_quantity_label = tk.Label(item_frame, text="数量:")
     item_quantity_label.pack(side=tk.LEFT, padx=(0, 5))
-    item_quantity_entry = tk.Entry(item_frame)
+    item_quantity_entry = tk.Entry(item_frame, width=10)
     item_quantity_entry.pack(side=tk.LEFT, padx=(0, 5))
 
     item_remark_label = tk.Label(item_frame, text="备注:")
