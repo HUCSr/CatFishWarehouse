@@ -2,14 +2,16 @@
     "files": [
         {
             "name": "test",
-            "date": "2024-09-19 23:01:24",
+            "date": "2024-09-22 17:02:10",
             "type": "分类",
+            "isDelete": true,
             "files": []
         },
         {
-            "name": "ttt",
-            "date": "2024-09-21 00:14:30",
+            "name": "testt",
+            "date": "2024-09-22 17:23:04",
             "type": "仓库",
+            "isDelete": true,
             "files": []
         }
     ]

@@ -76,7 +76,7 @@ def sendWarehouse(type, namelist):
 
 
 def sendDirectory(type, namelist):
-    if type <= 2:
+    if type <= 4:
         client_socket.send(("0" + str(type) + "5|" + namelist).encode())
     while True:
         try:

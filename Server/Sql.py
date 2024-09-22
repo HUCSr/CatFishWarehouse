@@ -388,15 +388,22 @@ def get_directory(directory):
 
     else:
         for file in now_directory["files"]:
+            print(file)
+            print(file.get("isDelete"))
+            if file["isDelete"] == True:
+                continue
             result.append(
                 {"name": file["name"], "date": file["date"], "type": file["type"]}
             )
-
+        if result == []:
+            return str({})
         return str(result)
 
 
 def create_directory(directory, t, f, path):
+
     path = path.replace("/", "_")
+    print("创建")
     print(directory)
     print(t)
     if t == 0:
@@ -417,59 +424,66 @@ def create_directory(directory, t, f, path):
         print(directory)
         print(directory_data)
         if len(directory) == 2:
-            count = 0
-            for file in directory_data["files"]:
-                st = file["name"]
-                if (
-                    re.fullmatch(directory[-1], rf"^{re.escape(st)}_(\d+)$")
-                    or file["name"] == directory[-1]
-                ):
-                    count += 1
             print(directory_data)
             print(directory_data["files"])
             print(directory[-1])
             if f == 0:
                 now = datetime.datetime.now()
                 time_str = now.strftime("%Y-%m-%d %H:%M:%S")
-                if count == 0:
+                have_delete = False
+                for directory_ in directory_data["files"]:
+                    if (
+                        directory_["name"] == directory[-1]
+                        and directory[-1]["type"] == "分类"
+                    ):
+                        directory_["date"] = time_str
+                        directory_["isDelete"] = False
+                        for child in directory_["files"]:
+                            child["isDelete"] = True
+                        have_delete = True
+
+                if have_delete == False:
                     directory_data["files"].append(
                         {
                             "name": directory[-1],
                             "date": time_str,
                             "type": "分类",
-                            "files": [],
-                        }
-                    )
-                else:
-                    directory_data["files"].append(
-                        {
-                            "name": directory[-1] + "_" + str(count),
-                            "date": time_str,
-                            "type": "分类",
+                            "isDelete": False,
                             "files": [],
                         }
                     )
             else:
                 now = datetime.datetime.now()
                 time_str = now.strftime("%Y-%m-%d %H:%M:%S")
-                if count == 0:
-                    directory_name = directory[-1]
-                else:
-                    directory_name = directory[-1] + "_" + str(count)
 
-                directory_data["files"].append(
-                    {
-                        "name": directory_name,
-                        "date": time_str,
-                        "type": "仓库",
-                        "files": [],
-                    }
-                )
+                directory_name = directory[-1]
 
-                if count == 0:
-                    directory_name = path
-                else:
-                    directory_name = path + "_" + str(count)
+                have_delete = False
+                for directory_ in directory_data["files"]:
+                    if (
+                        directory_["name"] == directory[-1]
+                        and directory[-1]["type"] == "仓库"
+                    ):
+                        directory_["date"] = time_str
+                        directory_["isDelete"] = False
+                        have_delete = True
+                        conn = connect("warehouse.db")
+                        c = conn.cursor()
+                        c.execute("""drop table if EXISTS """ + directory_name + ";")
+                        conn.commit()
+                        conn.close()
+                if have_delete == False:
+                    directory_data["files"].append(
+                        {
+                            "name": directory_name,
+                            "date": time_str,
+                            "type": "仓库",
+                            "isDelete": False,
+                            "files": [],
+                        }
+                    )
+
+                directory_name = path
 
                 print(directory_name)
                 conn = connect("warehouse.db")
@@ -504,32 +518,27 @@ def create_directory(directory, t, f, path):
         print(t)
         print(directory)
         if len(directory) == 1:
-            count = 0
-            for file in t:
-                st = file["name"]
-                if (
-                    re.fullmatch(directory[-1], rf"^{re.escape(st)}_(\d+)$")
-                    or file["name"] == directory[-1]
-                ):
-                    count += 1
             if f == 0:
                 now = datetime.datetime.now()
                 time_str = now.strftime("%Y-%m-%d %H:%M:%S")
-                if count == 0:
+                have_delete = False
+                for directory_ in t:
+                    if (
+                        directory_["name"] == directory[-1]
+                        and directory[-1]["type"] == "分类"
+                    ):
+                        directory_["date"] = time_str
+                        directory_["isDelete"] = False
+                        for child in directory_["files"]:
+                            child["isDelete"] = True
+                        have_delete = True
+                if have_delete == False:
                     t.append(
                         {
                             "name": directory[-1],
                             "date": time_str,
                             "type": "分类",
-                            "files": [],
-                        }
-                    )
-                else:
-                    t.append(
-                        {
-                            "name": directory[-1] + "_" + str(count),
-                            "date": time_str,
-                            "type": "分类",
+                            "isDelete": False,
                             "files": [],
                         }
                     )
@@ -537,25 +546,34 @@ def create_directory(directory, t, f, path):
 
                 now = datetime.datetime.now()
                 time_str = now.strftime("%Y-%m-%d %H:%M:%S")
-                if count == 0:
-                    directory_name = directory[-1]
-                else:
-                    directory_name = directory[-1] + "_" + str(count)
+                have_delete = False
+                directory_name = directory[-1]
+                for directory_ in t:
+                    if (
+                        directory_["name"] == directory_name
+                        and directory[-1]["type"] == "仓库"
+                    ):
+                        directory_["date"] = time_str
+                        directory_["isDelete"] = False
+                        have_delete = True
+                        conn = connect("warehouse.db")
+                        c = conn.cursor()
+                        c.execute("""drop table if EXISTS """ + directory_name + ";")
+                        conn.commit()
+                        conn.close()
                 print(directory_name)
-                print(directory_name)
-                t.append(
-                    {
-                        "name": directory_name,
-                        "date": time_str,
-                        "type": "仓库",
-                        "files": [],
-                    }
-                )
+                if have_delete == False:
+                    t.append(
+                        {
+                            "name": directory_name,
+                            "date": time_str,
+                            "type": "仓库",
+                            "isDelete": False,
+                            "files": [],
+                        }
+                    )
 
-                if count == 0:
-                    directory_name = path
-                else:
-                    directory_name = path + "_" + str(count)
+                directory_name = path
 
                 conn = connect("warehouse.db")
                 c = conn.cursor()
@@ -581,6 +599,7 @@ def create_directory(directory, t, f, path):
 
 def delete_directory(directory, t, f, path):
     path = path.replace("/", "_")
+    print("删除目录:")
     print(directory)
     print(t)
     if t == 0:
@@ -599,52 +618,33 @@ def delete_directory(directory, t, f, path):
         directory = directory.split("/")
         print(directory)
         if len(directory) == 2:
-            count = 0
-            for file in directory_data["files"]:
-                st = file["name"]
-                if (
-                    re.fullmatch(directory[-1], rf"^{re.escape(st)}_(\d+)$")
-                    or file["name"] == directory[-1]
-                ):
-                    count += 1
-            count -= 1
             if f == 0:
-                if count == 0:
-                    directory_name = directory[-1]
-                else:
-                    directory_name = directory[-1] + "_" + str(count)
-                index = 0
+                directory_name = directory[-1]
+                print("删除 " + directory_name)
+
                 for i in range(len(directory_data["files"])):
-                    st = directory_data["files"][i]["name"]
-                    if directory_data["files"][i]["name"] == directory_name:
-                        index = i
+                    if (
+                        directory_data["files"][i]["name"] == directory_name
+                        and directory_data["files"][i]["type"] == "分类"
+                    ):
+                        directory_data["files"][i]["isDelete"] = True
+                        print("删除")
                         break
-                print(index)
                 print(directory_data["files"])
-                del directory_data["files"][index]
             else:
-                if count == 0:
-                    directory_name = directory[-1]
-                else:
-                    directory_name = directory[-1] + "_" + str(count)
-                index = 0
+                directory_name = directory[-1]
                 for i in range(len(directory_data["files"])):
-                    st = directory_data["files"][i]["name"]
-                    if directory_data["files"][i]["name"] == directory_name:
-                        index = i
+                    if directory_data["files"][i]["isDelete"] == True:
+                        continue
+                    if (
+                        directory_data["files"][i]["name"] == directory_name
+                        and directory_data["files"][i]["type"] == "仓库"
+                    ):
+                        directory_data["files"][i]["isDelete"] = True
                         break
-                print(index)
                 print(directory_data["files"])
-                del directory_data["files"][index]
-                if count == 0:
-                    directory_name = path
-                else:
-                    directory_name = path + "_" + str(count)
-                conn = connect("warehouse.db")
-                c = conn.cursor()
-                c.execute("""drop table if EXISTS """ + directory_name + ";")
-                conn.commit()
-                conn.close()
+                directory_name = path
+
             print(directory_data)
             with open(file_path, "w", encoding="utf-8") as file:
                 json.dump(directory_data, file)
@@ -658,55 +658,30 @@ def delete_directory(directory, t, f, path):
             json.dump(directory_data, file)
     else:
         if len(directory) == 1:
-            count = 0
-            for file in t:
-                st = file["name"]
-                if (
-                    re.fullmatch(directory[-1], rf"^{re.escape(st)}_(\d+)$")
-                    or file["name"] == directory[-1]
-                ):
-                    count += 1
-            count -= 1
             if f == 0:
-                if count == 0:
-                    directory_name = directory[-1]
-                else:
-                    directory_name = directory[-1] + "_" + str(count)
+                directory_name = directory[-1]
                 index = 0
                 for i in range(len(t)):
                     st = t[i]["name"]
-                    if t[i]["name"] == directory_name:
-                        index = i
+                    if t[i]["name"] == directory_name and t[i]["type"] == "分类":
+                        t[i]["isDelete"] = True
                         break
                 print(index)
                 print(t)
-                del t[index]
             else:
-                if count == 0:
-                    directory_name = directory[-1]
-                else:
-                    directory_name = directory[-1] + "_" + str(count)
+                directory_name = directory[-1]
                 index = 0
                 print("directory_name")
                 print(directory_name)
                 print(path)
                 for i in range(len(t)):
-                    st = t[i]["name"]
-                    if t[i]["name"] == directory_name:
-                        index = i
+                    if t[i]["name"] == directory_name and t[i]["type"] == "仓库":
+                        t[i]["isDelete"] = True
                         break
                 print(index)
                 print(t)
-                del t[index]
-                if count == 0:
-                    directory_name = path
-                else:
-                    directory_name = path + "_" + str(count)
-                conn = connect("warehouse.db")
-                c = conn.cursor()
-                c.execute("""drop table if EXISTS """ + directory_name + ";")
-                conn.commit()
-                conn.close()
+                directory_name = path
+
         else:
             for i in range(len(t)):
                 if t[i]["name"] == directory[0]:

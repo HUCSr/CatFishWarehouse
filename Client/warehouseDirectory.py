@@ -61,6 +61,14 @@ def update_directory():
 
 def submit_category():
     category_name = category_entry.get().strip()
+    for category in directory_list.get_children():
+        category_name = directory_list.item(category)["values"][0]
+        if (
+            category_name == category_name
+            and directory_list.item(category)["values"][2] == "分类"
+        ):
+            messagebox.showwarning("警告", "分类已存在")
+            return
     if category_name and "/" not in category_name:
         SocketManager.sendDirectory(1, directory + "/" + category_name)
         messagebox.showinfo("提示", f"分类 '{category_name}' 已创建。")
@@ -88,6 +96,15 @@ def create_category():
 
 def submit_warehouse():
     warehouse_name = warehouse_entry.get().strip()
+
+    for directory_ in directory_list.get_children():
+        directory_name = directory_list.item(directory_)["values"][0]
+        if (
+            warehouse_name == directory_name
+            and directory_list.item(directory_)["values"][2] == "仓库"
+        ):
+            messagebox.showwarning("警告", "仓库已存在")
+            return
     if warehouse_name and "/" not in warehouse_name:
         SocketManager.sendDirectory(2, directory + "/" + warehouse_name)
         messagebox.showinfo("提示", f"仓库 '{warehouse_name}' 已创建。")
@@ -111,6 +128,31 @@ def create_warehouse():
 
     submit_button = tk.Button(warehouse_window, text="确定", command=submit_warehouse)
     submit_button.pack(pady=(5, 10))
+
+
+def delete_warehouse():
+
+    print("delete_warehouse")
+
+    selected_directory = directory_list.selection()
+    if selected_directory:
+        selected_directory_name = directory_list.item(selected_directory[0], "values")[
+            0
+        ]
+        selected_directory_type = directory_list.item(selected_directory[0], "values")[
+            2
+        ]
+    print(selected_directory_name)
+    print(selected_directory_type)
+    print(now_directory)
+    if selected_directory_type == "分类":
+        SocketManager.sendDirectory(3, directory + "/" + selected_directory_name)
+    else:
+        SocketManager.sendDirectory(4, directory + "/" + selected_directory_name)
+
+    messagebox.showinfo("提示", f"'{selected_directory_name}' 删除成功。")
+
+    update_directory()
 
 
 def open_directory():
@@ -187,7 +229,7 @@ def open_warehouse_directory(group, callback):
     delete_category_button = tk.Button(
         top_button_frame,
         text="删除分类",
-        command=lambda: messagebox.showinfo("提示", "创建仓库功能尚未实现"),
+        command=delete_warehouse,
     )
     delete_category_button.pack(side=tk.LEFT)
 
@@ -210,7 +252,7 @@ def open_warehouse_directory(group, callback):
     delete_button = tk.Button(
         button_frame,
         text="删除",
-        command=lambda: messagebox.showinfo("提示", "删除仓库功能尚未实现"),
+        command=delete_warehouse,
     )
     delete_button.pack(pady=5)
 
