@@ -151,6 +151,19 @@ def handle_client(client_socket):
                 result = Sql.search_item(message[4:].split(" "))
                 sendMessage("073|" + result, client_socket)
                 pass
+            # 合并
+            elif message[:3] == "083":
+                result = Sql.merge_warehouse(
+                    message[4:].split(" ")[0], message[4:].split(" ")[1]
+                )
+                logger.info(
+                    "Merged "
+                    + str(message[4:].split(" ")[0])
+                    + " to "
+                    + str(message[4:].split(" ")[1])
+                    + "."
+                )
+                pass
             # 用户
             elif message[:3] == "004":
                 result = Sql.user_list()

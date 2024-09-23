@@ -191,7 +191,7 @@ def back_directory():
     open_button.config(state=tk.DISABLED)
 
 
-def open_warehouse_directory(group, callback):
+def open_warehouse_directory(group, callback, _title):
 
     global callback_func
 
@@ -211,7 +211,7 @@ def open_warehouse_directory(group, callback):
     now_directory = {}
 
     directory_root = tk.Toplevel()
-    directory_root.title("选择仓库")
+    directory_root.title(_title)
 
     directory_frame = tk.Frame(directory_root)
     directory_frame.pack(padx=10, pady=10)

@@ -1,18 +1,1 @@
-{
-    "files": [
-        {
-            "name": "test",
-            "date": "2024-09-22 17:02:10",
-            "type": "分类",
-            "isDelete": true,
-            "files": []
-        },
-        {
-            "name": "testt",
-            "date": "2024-09-22 17:23:04",
-            "type": "仓库",
-            "isDelete": true,
-            "files": []
-        }
-    ]
-}
+{"files": [{"name": "1", "date": "2024-09-23 15:37:32", "type": "\u4ed3\u5e93", "isDelete": true, "files": []}, {"name": "2", "date": "2024-09-23 15:37:35", "type": "\u4ed3\u5e93", "isDelete": false, "files": []}]}

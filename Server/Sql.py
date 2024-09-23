@@ -692,6 +692,42 @@ def delete_directory(directory, t, f, path):
         return t
 
 
+def merge_warehouse(warehouse_A, warehouse_B):
+    if warehouse_A == warehouse_B:
+        return
+    conn = connect("warehouse.db")
+    print("合并:" + warehouse_A + " " + warehouse_B)
+    warehouse_A = warehouse_A.replace("/", "_")
+    warehouse_B = warehouse_B.replace("/", "_")
+
+    c = conn.cursor()
+    result = c.execute(
+        "SELECT item_name, item_quantity, item_remark FROM " + warehouse_A
+    )
+    for item in result:
+        print(item[0])
+        print(item[1])
+        print(item[2])
+        c.execute(
+            """ INSERT INTO """
+            + warehouse_B
+            + """ (item_name, item_quantity, item_remark)
+            VALUES (\'"""
+            + item[0]
+            + "',"
+            + str(item[1])
+            + ",'"
+            + item[2]
+            + """\')
+            ON CONFLICT(item_name) DO UPDATE SET item_quantity = item_quantity + excluded.item_quantity,item_remark = excluded.item_remark;"""
+        )
+    conn.commit()
+    conn.close()
+    warehouse_A = warehouse_A.replace("_", "/")
+    delete_directory(warehouse_A, 0, 1, warehouse_A)
+    pass
+
+
 # def add_warehouse(name):
 #     conn = connect("warehouse.db")
 #     c = conn.cursor()

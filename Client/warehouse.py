@@ -147,6 +147,39 @@ def delete_item():
         item_remark_entry.delete(0, tk.END)
 
 
+# 导出物品
+
+
+def export_item():
+    warehouseDirectory.open_warehouse_directory(Type, update_export_item, "导出至")
+    pass
+
+
+def update_export_item(new_warehouse):
+    item_name = item_name_entry.get().strip()
+    item_quantity = item_quantity_entry.get().strip()
+    item_remark = item_remark_entry.get().strip()
+    if not item_name:
+        messagebox.showwarning("警告", "物品名称不能为空。")
+        return
+    if not item_quantity.isdigit() or int(item_quantity) <= 0:
+        messagebox.showwarning("警告", "物品数量必须是大于0的数字。")
+        return
+
+    result = SocketManager.sendWarehouse(
+        4, [new_warehouse, item_name, item_quantity, item_remark]
+    )
+    result = SocketManager.sendWarehouse(
+        5, [selected_warehouse, item_name, item_quantity, item_remark]
+    )
+
+    update_item_list(None)  # 更新物品列表
+    # 清空输入框
+    item_name_entry.delete(0, tk.END)
+    item_quantity_entry.delete(0, tk.END)
+    item_remark_entry.delete(0, tk.END)
+
+
 # 搜索物品
 def search_item():
     search_name = search_entry.get().strip().lower()
@@ -283,18 +316,39 @@ def show_inventory_history():
 
 def select_warehouse():
     print("AWA")
-    warehouseDirectory.open_warehouse_directory(Type, update_directory)
+    warehouseDirectory.open_warehouse_directory(Type, update_directory, "打开仓库")
     print("AWA")
+    pass
+
+
+def merge_warehouse():
+    warehouseDirectory.open_warehouse_directory(Type, update_merge_warehouse, "合并至")
+
+
+def update_merge_warehouse(new_warehouse):
+    print("合并:" + selected_warehouse + " " + new_warehouse)
+    result = SocketManager.sendWarehouse(8, [selected_warehouse, new_warehouse])
+    update_directory(new_warehouse)
     pass
 
 
 def update_directory(new_directory):
     global selected_warehouse
     global warehouse_root
+    global export_button, merge_warehouse_button, chart_button, history_button
+    global add_item_button, delete_item_button, export_item_button
     selected_warehouse = new_directory
     print(selected_warehouse)
     warehouse_root.title("当前仓库: " + selected_warehouse.split("/")[-1])
     update_item_list(None)
+    export_button.config(state=tk.NORMAL)
+    merge_warehouse_button.config(state=tk.NORMAL)
+    chart_button.config(state=tk.NORMAL)
+    history_button.config(state=tk.NORMAL)
+
+    add_item_button.config(state=tk.NORMAL if Type == 0 else tk.DISABLED)
+    delete_item_button.config(state=tk.NORMAL if Type == 0 else tk.DISABLED)
+    export_item_button.config(state=tk.NORMAL if Type == 0 else tk.DISABLED)
 
 
 # 打开仓库界面
@@ -310,14 +364,21 @@ def open_warehouse(group):
 
     global selected_warehouse, item_list, item_name_entry, item_quantity_entry, item_remark_entry
 
-    global add_item_button, delete_item_button
+    global add_item_button, delete_item_button, export_item_button
 
     global search_entry
     global search_entry_1
     global search_entry_2
 
+    global export_button, merge_warehouse_button, chart_button, history_button
+
     selected_warehouse = ""
     item_list = None
+
+    select_warehouse_button = tk.Button(
+        warehouse_root, text="选择仓库", command=select_warehouse
+    )
+    select_warehouse_button.pack(padx=10, pady=10)
 
     # 添加/删除仓库
     warehouse_frame = tk.Frame(warehouse_root)
@@ -340,6 +401,13 @@ def open_warehouse(group):
         warehouse_frame, text="导出仓库", command=export_warehouse
     )
     export_button.pack(side=tk.LEFT)
+    export_button.config(state=tk.DISABLED)
+
+    merge_warehouse_button = tk.Button(
+        warehouse_frame, text="合并至", command=merge_warehouse
+    )
+    merge_warehouse_button.pack(side=tk.LEFT)
+    merge_warehouse_button.config(state=tk.DISABLED)
 
     # 仓库选择
     # warehouse_label = tk.Label(warehouse_root, text="选择仓库:")
@@ -347,11 +415,6 @@ def open_warehouse(group):
     # warehouse_combobox = ttk.Combobox(warehouse_root, values=[])
     # warehouse_combobox.bind("<<ComboboxSelected>>", update_item_list)
     # warehouse_combobox.pack(padx=10, pady=10)
-
-    select_warehouse_button = tk.Button(
-        warehouse_root, text="选择仓库", command=select_warehouse
-    )
-    select_warehouse_button.pack(padx=10, pady=10)
 
     # update_warehouse()
 
@@ -407,9 +470,15 @@ def open_warehouse(group):
 
     add_item_button = tk.Button(item_frame, text="入库", command=add_item)
     add_item_button.pack(side=tk.LEFT, padx=(0, 5))
+    add_item_button.config(state=tk.DISABLED)
 
     delete_item_button = tk.Button(item_frame, text="出库", command=delete_item)
     delete_item_button.pack(side=tk.LEFT)
+    delete_item_button.config(state=tk.DISABLED)
+
+    export_item_button = tk.Button(item_frame, text="导出至", command=export_item)
+    export_item_button.pack(side=tk.LEFT)
+    export_item_button.config(state=tk.DISABLED)
 
     # 通过权限控制该按钮是否可用
     item_name_label.config(state=tk.NORMAL if Type == 0 else tk.DISABLED)
@@ -420,11 +489,13 @@ def open_warehouse(group):
         warehouse_frame, text="查看库存图表", command=show_inventory_chart
     )
     chart_button.pack(side=tk.LEFT)
+    chart_button.config(state=tk.DISABLED)
 
     history_button = tk.Button(
         warehouse_frame, text="查看入库/出库历史", command=show_inventory_history
     )
     history_button.pack(side=tk.LEFT)
+    history_button.config(state=tk.DISABLED)
 
     warehouse_root.mainloop()
 

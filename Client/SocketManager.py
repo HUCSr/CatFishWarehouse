@@ -43,6 +43,11 @@ def sendWarehouse(type, namelist):
                 + namelist[2]
             ).encode()
         )
+    elif type == 8:
+        print(namelist[0] + " " + namelist[1])
+        client_socket.send(
+            ("0" + str(type) + "3|" + namelist[0] + " " + namelist[1]).encode()
+        )
     elif type != 6:
         client_socket.send(
             (
